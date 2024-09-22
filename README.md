@@ -1,8 +1,7 @@
 # ssh_configurator
 
-<a href="https://discord.gg/UA5eb5SsAh">
-        <img src="https://img.shields.io/discord/1183477399208345771?color=blue8&label=Discord&logo=discord&style=for-the-badge"
-            alt="chat on Discord"></a>
+[![Chat on discord](https://img.shields.io/discord/1183477399208345771?color=blue8&label=Discord&logo=discord&style=for-the-badge)](https://discord.gg/qtjrKnCk8y)
+[![Support on boosty](https://img.shields.io/badge/Support_on-Boosty-ff7700?style=for-the-badge&logo=boosty)](https://boosty.to/atarwn)
 
 This script sets up a secure SSH environment on a fresh, unconfigured Debian-based system. It generates a random port for SSH access, configures password authentication options, installs UFW (Uncomplicated Firewall) and Fail2Ban for enhanced security, and adds the specified public key for SSH access.
 
