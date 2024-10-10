@@ -31,7 +31,7 @@ clear
 echo "atarwn's ssh configurator"
 echo
 echo "/!\ This script should ONLY be run on a fresh, unconfigured system!"
-echo "/!\ If you have changed any settings in ssh, ufw, and/or fail2ban, I do not recommend running this script."
+echo "/!\ If you have changed any settings in ssh, ufw, and/or fail2ban, i do not recommend running this script."
 echo "For support or inquiries, find me via: https://ya.ru/search/?text=atarwn"
 echo
 echo "Tip: run the script with the --help key, for help. 8)"
@@ -62,78 +62,34 @@ NEW_PORT=$(shuf -i 1024-65535 -n 1)
 
 echo ":: New port for SSH: $NEW_PORT"
 
-# Prompt for service installation options
-echo
-echo "Select which services you want to install/configure:"
-echo "1. Install UFW (Firewall)"
-echo "2. Install Fail2Ban (Brute-force protection)"
-echo "3. Configure SSH (Random port, disable password authentication)"
-echo "4. All of the above"
-echo
-read -p "Enter your choice (1-4): " choice
+SSH_CONFIG="/etc/ssh/sshd_config"
 
-install_ufw=false
-install_fail2ban=false
-configure_ssh=false
+echo "# SSH secure access setup script by atarwn" >> $SSH_CONFIG
+echo "# Find me via https://ya.ru/search/?text=atarwn" >> $SSH_CONFIG
 
-case $choice in
-    1)
-        install_ufw=true
-        ;;
-    2)
-        install_fail2ban=true
-        ;;
-    3)
-        configure_ssh=true
-        ;;
-    4)
-        install_ufw=true
-        install_fail2ban=true
-        configure_ssh=true
-        ;;
-    *)
-        echo "Invalid choice. Exiting..."
-        exit 1
-        ;;
-esac
+echo "Port $NEW_PORT" >> $SSH_CONFIG
 
-# SSH Configuration
-if $configure_ssh; then
-    SSH_CONFIG="/etc/ssh/sshd_config"
-    echo "# SSH secure access setup script by atarwn" >> $SSH_CONFIG
-    echo "# Find me via https://ya.ru/search/?text=atarwn" >> $SSH_CONFIG
+read -p "Disable password access? (y/n) " disable_password_auth
 
-    echo "Port $NEW_PORT" >> $SSH_CONFIG
-
-    read -p "Disable password access? (y/n) " disable_password_auth
-
-    if [[ "$disable_password_auth" =~ ^[Yy]$ ]]; then
-        echo "PasswordAuthentication no" >> $SSH_CONFIG
-    else
-        echo ":: Password authentication will remain enabled."
-    fi
-
-    sudo systemctl restart sshd
-    echo ":: SSH configuration updated and service restarted."
+if [[ "$disable_password_auth" =~ ^[Yy]$ ]]; then
+    echo "PasswordAuthentication no" >> $SSH_CONFIG
+else
+    echo ":: Password authentication will remain enabled."
 fi
 
-# UFW Installation and Configuration
-if $install_ufw; then
-    sudo apt update && sudo apt install -y ufw
-    sudo ufw allow $NEW_PORT/tcp
-    sudo ufw enable
-    echo ":: UFW firewall installed and configured to allow traffic on port $NEW_PORT."
+sudo systemctl restart sshd
+
+sudo apt update && sudo apt install -y ufw fail2ban
+
+sudo ufw allow $NEW_PORT/tcp
+sudo ufw enable
+
+FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
+if [ ! -f $FAIL2BAN_JAIL ]; then
+    sudo touch $FAIL2BAN_JAIL
 fi
 
-# Fail2Ban Installation and Configuration
-if $install_fail2ban; then
-    sudo apt update && sudo apt install -y fail2ban
-    FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
-    if [ ! -f $FAIL2BAN_JAIL ]; then
-        sudo touch $FAIL2BAN_JAIL
-    fi
-
-    sudo bash -c "cat > $FAIL2BAN_JAIL" <<EOL
+sudo bash -c "cat > $FAIL2BAN_JAIL" <<EOL
 [sshd]
 enabled  = true
 port     = $NEW_PORT
@@ -143,11 +99,8 @@ maxretry = 3
 bantime  = 3600
 EOL
 
-    sudo systemctl restart fail2ban
-    echo ":: Fail2Ban installed and configured for SSH protection."
-fi
+sudo systemctl restart fail2ban
 
-# Adding Public Key
 sudo mkdir -p /root/.ssh
 echo "$PUBLIC_KEY" | sudo tee -a /root/.ssh/authorized_keys > /dev/null
 sudo chmod 600 /root/.ssh/authorized_keys
@@ -155,22 +108,15 @@ sudo chmod 700 /root/.ssh
 
 echo ":: The public key has been successfully added to /root/.ssh/authorized_keys."
 
-# Final Summary
 echo " - - - - - - - - - - - - - - - "
 echo "Done! The script has configured your system to use SSH more securely. Here's what we changed:"
 echo "1. Generated a new random port for SSH access: $NEW_PORT"
-if $configure_ssh; then
-    echo "2. Updated the SSH configuration to use the new port."
-    if [[ "$disable_password_auth" =~ ^[Yy]$ ]]; then
-        echo "3. Disabled password authentication for SSH."
-    else
-        echo "3. Password authentication remains enabled."
-    fi
+echo "2. Updated the SSH configuration to use the new port."
+if [[ "$disable_password_auth" =~ ^[Yy]$ ]]; then
+    echo "3. Disabled password authentication for SSH."
+else
+    echo "3. Password authentication remains enabled."
 fi
-if $install_ufw; then
-    echo "4. Installed and configured UFW (Uncomplicated Firewall) to allow traffic on port $NEW_PORT."
-fi
-if $install_fail2ban; then
-    echo "5. Installed and configured Fail2Ban to protect against brute-force attacks on SSH."
-fi
+echo "4. Installed and configured UFW (Uncomplicated Firewall) to allow traffic on port $NEW_PORT."
+echo "5. Installed and configured Fail2Ban to protect against brute-force attacks on SSH."
 echo "6. Added the provided public key to /root/.ssh/authorized_keys."
