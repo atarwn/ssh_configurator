@@ -27,7 +27,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     exit 0
 fi
 
-clear
+# clear
 echo "atarwn's ssh configurator"
 echo
 echo "/!\ This script should ONLY be run on a fresh, unconfigured system!"

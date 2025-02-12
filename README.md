@@ -20,7 +20,18 @@ This script sets up a secure SSH environment on a fresh, unconfigured Debian-bas
 
 ## Usage
 
-1. **Download the script:**
+1. **Generate public key:**
+
+
+   ```bash
+   ssh-keygen -t rsa
+   ```
+   
+   ```bash
+   cat ~/.ssh/<yourkey>.pub
+   ```
+
+2. **Download the script:**
 
    using `curl`
    ```bash
@@ -32,22 +43,22 @@ This script sets up a secure SSH environment on a fresh, unconfigured Debian-bas
    ```
 
 
-2. **Make the script executable:**
+3. **Make the script executable:**
 
    ```bash
-   chmod +x ssh_setup.sh
+   chmod +x ssh_configurator.sh
    ```
 
-3. **Run the script with your public key as an argument:**
+4. **Run the script with your public key as an argument:**
 
    ```bash
-   sudo ./ssh_setup.sh "your-public-key"
+   sudo ./ssh_configurator.sh "your-public-key"
    ```
 
    Alternatively, you can run the script without arguments, and it will prompt you to enter your public key:
 
    ```bash
-   sudo ./ssh_setup.sh
+   sudo ./ssh_configurator.sh
    ```
 
 4. **Follow the on-screen prompts:**
@@ -61,7 +72,7 @@ This script sets up a secure SSH environment on a fresh, unconfigured Debian-bas
    You can view help information by running:
 
    ```bash
-   sudo ./ssh_setup.sh --help
+   sudo ./ssh_configurator.sh --help
    ```
 
 ## Important Notes
